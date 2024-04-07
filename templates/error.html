@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Error</title>
+    <style>
+        /* Center the div vertically and horizontally */
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f5f5f5; /* Light gray background */
+            font-family: Arial, sans-serif; /* Set default font */
+        }
+
+        /* Style the error message container */
+        .error-container {
+            text-align: center;
+            background: #fff; /* White background */
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow effect */
+            padding: 30px;
+            max-width: 400px; /* Limit width for better readability */
+            width: 80%; /* Responsive width */
+        }
+
+        /* Style the error message */
+        .error-message {
+            font-size: 24px;
+            color: #333; /* Dark text color */
+            margin-bottom: 20px;
+        }
+
+        /* Style the OK button */
+        .ok-button {
+            background-color: #4CAF50; /* Green background */
+            color: white; /* White text */
+            padding: 10px 20px; /* Padding */
+            border: none; /* No border */
+            border-radius: 25px; /* Oval edges */
+            cursor: pointer; /* Cursor style */
+            font-size: 16px; /* Font size */
+            transition-duration: 0.4s; /* Smooth transition */
+            outline: none; /* Remove default focus outline */
+        }
+
+        /* Hover effect for the OK button */
+        .ok-button:hover {
+            background-color: #45a049; /* Darker green on hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <h3 class="error-message">Error</h3>
+        <p>Oops! Only the creator of this post can delete it.</p>
+        <button class="ok-button" id="okButton">OK</button>
+    </div>
+    <script>
+        document.getElementById("okButton").addEventListener("click", function () {
+            window.location.href = "/";
+        });
+    </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect,HttpResponse
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from blog.models import Post, MyUser, CommentPost, LikePost, FollowUser
 
@@ -7,11 +7,12 @@ def func(post, comments):
     post.comments = comments.filter(post_id=post.id)
     return post
 
+
 @login_required(login_url='/auth/login/')
 def home_view(request):
     posts = map(lambda post: func(post, CommentPost.objects.all()), Post.objects.all())
     d = {
-        'posts':posts,
+        'posts': posts,
         'user': MyUser.objects.filter(user=request.user).first(),
         'profiles': MyUser.objects.all().exclude(user=request.user),
     }
@@ -46,6 +47,22 @@ def upload_view(request):
         my_user.save(update_fields=['post_count'])
         return redirect('/')
     return redirect('/')
+
+
+def delete_post_view(request):
+    data = request.GET
+    post_id = data.get("post_id")
+    user = request.user
+    post = Post.objects.filter(id=post_id).first()
+    if post.author.user == user:
+        post.delete()
+        my_user = MyUser.objects.filter(user=request.user).first()
+        my_user.post_count -= 1
+        my_user.save(update_fields=['post_count'])
+        latest_post = Post.objects.last()
+        return redirect('/#{}'.format(latest_post.id))
+    else:
+        return render(request, 'error.html')
 
 
 def follow_view(request):
@@ -157,18 +174,6 @@ def profile_info_view(request):
     return render(request, 'profile.html', context=d)
 
 
-def delete_post_view(request):
-    data = request.GET
-    post_id = data.get("post_id")
-    user = request.user
-    post = Post.objects.filter(id=post_id).first()
-    if post.author.user == user:
-        post.delete()
-        return redirect('/')
-    else:
-        return render(request, 'error.html')
-
-
 def search_view(request):
     if request.method == 'POST':
         query = request.POST.get('query')
@@ -185,17 +190,25 @@ def search_view(request):
     elif query != usernames:
         return render(request, 'index.html', {'usernames': usernames})
 
-def sql_test_view(request):
-    # raw_query = """ create table contact(
-    #     id bigserial primary key,
-    #     name varchar(128),
-    #     mesasage text,
-    #     created_at timestamp default CURRENT_TIMESTAMP
-    # );
-    # """
-    obj=Post.objects.raw(raw_query= """insert into 
-    blog_post(id,author_id,image,is_published,like_count,created_at)
-                         values(1,'asd',1,5,'2024-03-30 04:12:14.561491');
-                         """)
-    print(obj)
-    return HttpResponse('OK')
+
+def post_authorinfo_view(request):
+    data = request.GET
+    profile_id = data.get("author_id")
+    profile = MyUser.objects.filter(id=profile_id).first()
+    followers_count = profile.follower_count
+    followings_count = profile.following_count
+    posts_count = profile.post_count
+    profile_pic = profile.profile_pic
+    bio = profile.bio
+    user_posts = Post.objects.filter(author=profile)
+    d = {
+        'profile_pic': profile_pic,
+        'bio': bio,
+        'profile': profile,
+        'user': MyUser.objects.filter(user=request.user).first(),
+        'followers': followers_count,
+        'followings': followings_count,
+        'posts': posts_count,
+        'user_posts': user_posts,
+    }
+    return render(request, 'profile.html', context=d)

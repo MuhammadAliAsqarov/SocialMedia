@@ -306,9 +306,10 @@
             </a>
             <div uk-drop="mode: click;offset:9" class="header_dropdown profile_dropdown border-t">
                 <ul>
-                    <li><a href="/setting"> Account setting </a></li>
+                    <li><a href="/profile"> Profile </a></li>
                     <li><a href="explore.html">explore </a></li>
                     <li><a href="#"> Help </a></li>
+                      <li><a href="/setting"> Account settings </a></li>
                     <li><a href="/auth/login"> Log Out</a></li>
                 </ul>
             </div>
@@ -339,7 +340,7 @@
                                      class="bg-gray-200 border border-white rounded-full w-8 h-8">
                             </div>
                         </a>
-                        <span class="block text-lg font-bold text-blue-800">{{ post.author.user.username }}</span>
+                        <span class="block text-lg font-bold text-blue-800"><a href="/post_authorinfo/?author_id={{ post.author.id }}">{{ post.author.user.username }}</a></span>
                         <span class="block text-sm font-semibold text-gray-600">
     <strong style="color: deepskyblue;">Posted:</strong>
     <time datetime="{{ post.created }}" class="text-gray-500">{{ post.created | date:"F d, Y" }}</time>

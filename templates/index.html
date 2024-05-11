@@ -16,6 +16,84 @@
     <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/tailwind.css' %}">
     <style>
+        /* CSS for Modal */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0, 0, 0, 0.6); /* Black with transparency */
+        }
+
+        .modal-content {
+            background-color: #fefefe; /* White background */
+            margin: 15% auto; /* Center the modal vertically and horizontally */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
+            max-width: 400px; /* Limit width to ensure readability */
+        }
+
+        .close {
+            color: #aaa; /* Light gray color for close button */
+            float: right;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #333; /* Darken the color on hover or focus */
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #ccc; /* Add a border at the bottom of the header */
+            padding-bottom: 10px; /* Add space below the header */
+        }
+
+        .modal-body {
+            padding-top: 10px; /* Add space above the body content */
+            padding-bottom: 20px; /* Add space below the body content */
+        }
+
+        .modal-footer {
+            border-top: 1px solid #ccc; /* Add a border at the top of the footer */
+            padding-top: 10px; /* Add space above the footer */
+            text-align: right; /* Align footer content to the right */
+        }
+
+        .btn {
+            padding: 10px 20px; /* Padding for the button */
+            background-color: #007bff; /* Button background color */
+            color: #fff; /* Button text color */
+            border: none; /* Remove button border */
+            border-radius: 5px; /* Add border radius for rounded corners */
+            cursor: pointer; /* Change cursor to pointer on hover */
+            transition: background-color 0.3s; /* Smooth transition for background color */
+        }
+
+        .btn:hover {
+            background-color: #0056b3; /* Darken button background color on hover */
+        }
+
+        .btn-secondary {
+            background-color: #ccc; /* Secondary button background color */
+            color: #333; /* Secondary button text color */
+            margin-right: 10px; /* Add margin between buttons */
+        }
+
+        .btn-secondary:hover {
+            background-color: #bbb; /* Darken secondary button background color on hover */
+        }
+    </style>
+
+    <style>
         .left-sidebar {
             position: relative;
             float: left; /* Ensure the left sidebar stays on the left */
@@ -98,7 +176,7 @@
         <div class="left-side">
             <!-- Logo -->
             <div id="logo" class=" uk-hidden@s">
-                <a href="index.html">
+                <a href="/">
                     <b><h1 style="text-transform: uppercase;">Social Book</h1></b>
                 </a>
             </div>
@@ -125,7 +203,8 @@
                         <ul class="results-list">
                             {% for user in usernames %}
                             <li class="result-item">
-                                <a href="/profile_info?profile_id={{ user.id }}" class="result-link">{{ user.user.username }}</a>
+                                <a href="/profile_info?profile_id={{ user.id }}" class="result-link">{{
+                                    user.user.username }}</a>
                                 <div class="remove-container">
                                     {% if usernames|length > 1 %}
                                     <a href="#" class="remove-button" onclick="removeSearchResult(this)">X</a>
@@ -300,16 +379,13 @@
             </div>
 
             <!-- profile -->
-
             <a href="{{ user.profile_pic.url }}">
                 <img src="{{ user.profile_pic.url }}" class="header-avatar" alt="">
             </a>
             <div uk-drop="mode: click;offset:9" class="header_dropdown profile_dropdown border-t">
                 <ul>
                     <li><a href="/profile"> Profile </a></li>
-                    <li><a href="explore.html">explore </a></li>
-                    <li><a href="#"> Help </a></li>
-                      <li><a href="/setting"> Account settings </a></li>
+                    <li><a href="/setting"> Account settings </a></li>
                     <li><a href="/auth/login"> Log Out</a></li>
                 </ul>
             </div>
@@ -334,13 +410,14 @@
                 <!-- post header-->
                 <div class="flex justify-between items-center px-4 py-3">
                     <div class="flex flex-1 items-center space-x-4">
-                        <a href="{{ post.author.profile_pic.url }}eare">
+                        <a href="{{ post.author.profile_pic.url }}">
                             <div class="bg-gradient-to-tr from-yellow-600 to-pink-600 p-0.5 rounded-full">
                                 <img src="{{ post.author.profile_pic.url }}"
                                      class="bg-gray-200 border border-white rounded-full w-8 h-8">
                             </div>
                         </a>
-                        <span class="block text-lg font-bold text-blue-800"><a href="/post_authorinfo/?author_id={{ post.author.id }}">{{ post.author.user.username }}</a></span>
+                        <span class="block text-lg font-bold text-blue-800"><a
+                                href="/post_authorinfo/?author_id={{ post.author.id }}">{{ post.author.user.username }}</a></span>
                         <span class="block text-sm font-semibold text-gray-600">
     <strong style="color: deepskyblue;">Posted:</strong>
     <time datetime="{{ post.created }}" class="text-gray-500">{{ post.created | date:"F d, Y" }}</time>
@@ -368,23 +445,10 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="#"
-                                       class="flex items-center px-3 py-2 hover:bg-gray-200 hover:text-gray-800 rounded-md ">
-                                        <i class="uil-comment-slash mr-1"></i> Disable comments
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#"
-                                       class="flex items-center px-3 py-2 hover:bg-gray-200 hover:text-gray-800 rounded-md ">
-                                        <i class="uil-favorite mr-1"></i> Add favorites
-                                    </a>
-                                </li>
-                                <li>
                                     <hr class="-mx-2 my-2 ">
                                 </li>
                                 <li>
-                                    <a href="/delete_post?post_id={{ post.id }}"
-                                       onclick="confirmDelete('{{ post.id }}')"
+                                    <a href="javascript:void(0)" onclick="openConfirmationModal('{{ post.id }}')"
                                        class="flex items-center px-3 py-2 text-red-500 hover:bg-red-100 hover:text-red-500 rounded-md ">
                                         <i class="uil-trash-alt mr-1"></i> Delete
                                     </a>
@@ -402,6 +466,22 @@
                     </a>
                 </div>
 
+                <!-- Modal HTML -->
+                <div id="confirmationModal" class="modal"
+                     style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.6);">
+                    <div class="modal-content"
+                         style="background-color: #fefefe; margin: 15% auto; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); max-width: 400px;">
+                        <span class="close" style="color: #aaa; float: right; font-size: 20px; font-weight: bold;"
+                              onclick="closeConfirmationModal()">&times;</span>
+                        <p style="padding-bottom: 20px;">Are you sure you want to delete the post?</p>
+                        <button style="padding: 10px 20px; background-color: #007bff; color: #fff; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s; margin-right: 10px;"
+                                onclick="confirmDelete()">Delete
+                        </button>
+                        <button style="padding: 10px 20px; background-color: #ccc; color: #333; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s;"
+                                onclick="closeConfirmationModal()">Cancel
+                        </button>
+                    </div>
+                </div>
 
                 <div class="py-3 px-4 space-y-3">
 
@@ -426,8 +506,8 @@
                         </a>
                         <a href="#" class="flex items-center space-x-2">
                             {% if post.comment_count == 0 %}
-                                <div class="p-2 rounded-full text-black">
-                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                            <div class="p-2 rounded-full text-black">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
                                      width="25" height="25" class="">
                                     <path fill-rule="evenodd"
                                           d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z"
@@ -459,33 +539,31 @@
                     </div>
                     <div class="flex items-center space-x-3">
                         <div class="flex items-center">
-                            <img src="{% static 'assets/images/avatars/avatar-1.jpg' %}" alt=""
+                            {% for post in post.likes %}
+                            <img src="{{ post.author.profile_pic.url }}" alt=""
                                  class="w-6 h-6 rounded-full border-2 border-white ">
-                            <img src="{% static 'assets/images/avatars/avatar-4.jpg' %}" alt=""
-                                 class="w-6 h-6 rounded-full border-2 border-white  -ml-2">
-                            <img src="{% static 'assets/images/avatars/avatar-2.jpg' %}" alt=""
-                                 class="w-6 h-6 rounded-full border-2 border-white  -ml-2">
+                           {% endfor %}
                         </div>
                         <div class="">
-                            Liked <strong></strong> and <strong> {{ post.like_count }} others , </strong>
+                          {{ post.last_liked.author.user.username }} Liked <strong></strong> and <strong> {{ post.like_count }} others , </strong>
                             Comments <strong> {{ post.comment_count }} </strong>
                         </div>
                     </div>
 
                     <div class="border-t pt-4 space-y-4">
-                            {% for comment in post.comments %}
-                            {% if comment.message %}
-                            <div class="flex items-center">
-                                <div class="w-10 h-10 rounded-full relative flex-shrink-0">
-                                    <img src="{{ comment.author.profile_pic.url }}" alt=""
-                                         class="absolute h-full rounded-full w-full">
-                                </div>
-                                <div class="text-gray-700 py-2 px-3 rounded-md bg-gray-100 h-full relative lg:ml-5 ml-2 lg:mr-20">
-                                    <p>{{ comment.message }}</p>
-                                </div>
+                        {% for comment in post.comments %}
+                        {% if comment.message %}
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full relative flex-shrink-0">
+                                <img src="{{ comment.author.profile_pic.url }}" alt=""
+                                     class="absolute h-full rounded-full w-full">
                             </div>
-                            {% endif %}
-                            {% endfor %}
+                            <div class="text-gray-700 py-2 px-3 rounded-md bg-gray-100 h-full relative lg:ml-5 ml-2 lg:mr-20">
+                                <p>{{ comment.message }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
                     </div>
 
                     <!-- Comment form -->
@@ -561,12 +639,29 @@
 <script src="{% static 'assets/js/simplebar.js' %}"></script>
 <script src="{% static 'assets/js/custom.js' %}"></script>
 <script>
-    function confirmDelete() {
-        var confirmation = confirm("Are you sure you want to delete the post?");
-        if (confirmation) {
-            window.location.href = "/delete_post?post_id={{ post.id }}";
-        }
+    function openConfirmationModal(postId) {
+        var modal = document.getElementById('confirmationModal');
+        modal.style.display = 'block';
+        // Set postId as a data attribute of the modal for access when confirming deletion
+        modal.dataset.postId = postId;
     }
+
+    function closeConfirmationModal() {
+        var modal = document.getElementById('confirmationModal');
+        modal.style.display = 'none';
+    }
+
+    function confirmDelete() {
+        // Get postId from the data attribute of the modal
+        var postId = document.getElementById('confirmationModal').dataset.postId;
+
+        // Close the modal
+        closeConfirmationModal();
+
+        // Redirect to delete URL
+        window.location.href = "/delete_post?post_id=" + postId;
+    }
+
 </script>
 
 <script src="{% static 'ionicons@5.2.3/dist/ionicons.js' %}"></script>

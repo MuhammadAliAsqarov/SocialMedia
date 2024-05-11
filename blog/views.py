@@ -5,12 +5,18 @@ from blog.models import Post, MyUser, CommentPost, LikePost, FollowUser
 
 def func(post, comments):
     post.comments = comments.filter(post_id=post.id)
+    post.likes = LikePost.objects.filter(post_id=post.id).order_by('created_at')[:3]
+    post.last_liked = post.likes[0]
     return post
 
 
 @login_required(login_url='/auth/login/')
 def home_view(request):
-    posts = map(lambda post: func(post, CommentPost.objects.all()), Post.objects.all())
+    followed_users = FollowUser.objects.filter(follower=request.user.myuser).values_list('following', flat=True)
+    posts = map(lambda post: func(post, CommentPost.objects.all()), Post.objects.filter(author__in=followed_users))
+
+
+
     d = {
         'posts': posts,
         'user': MyUser.objects.filter(user=request.user).first(),
@@ -49,12 +55,23 @@ def upload_view(request):
     return redirect('/')
 
 
+def uploadprofile_view(request):
+    if request.method == 'POST':
+        try:
+            my_user = MyUser.objects.get(user=request.user)
+        except MyUser.DoesNotExist:
+            my_user = None
+        if my_user:
+            my_user.profile_pic = request.FILES.get('profile_pic')
+            my_user.save()
+            return redirect('/profile/')
+
+
 def delete_post_view(request):
     data = request.GET
     post_id = data.get("post_id")
-    user = request.user
     post = Post.objects.filter(id=post_id).first()
-    if post.author.user == user:
+    if post.author.user == request.user:
         post.delete()
         my_user = MyUser.objects.filter(user=request.user).first()
         my_user.post_count -= 1

@@ -30,7 +30,7 @@ def home_view(request):
         message = data['message']
         post_id = data['post_id']
         my_user = MyUser.objects.filter(user=request.user).first()
-        comment_post = Post.objects.filter(id=post_id).first()
+        comment_post = Post.objects.filter(pk=post_id).first()
         obj = CommentPost.objects.create(message=message, post_id=post_id, author=my_user)
         obj.save()
         obj = CommentPost.objects.create(author=my_user, post_id=post_id)
@@ -43,7 +43,7 @@ def home_view(request):
 
 @login_required(login_url='/auth/login/')
 def comments_view(request, post_id):
-    post = Post.objects.filter(id=post_id).first()
+    post = Post.objects.filter(pk=post_id).first()
     comments = CommentPost.objects.filter(post=post).all()
     return render(request, 'index.html', context={'post': post, 'comments': comments})
 
@@ -77,7 +77,7 @@ def uploadprofile_view(request):
 def delete_post_view(request):
     data = request.GET
     post_id = data.get("post_id")
-    post = Post.objects.filter(id=post_id).first()
+    post = Post.objects.filter(pk=post_id).first()
     if post.author.user == request.user:
         post.delete()
         my_user = MyUser.objects.filter(user=request.user).first()
@@ -92,45 +92,25 @@ def delete_post_view(request):
 @login_required(login_url='/auth/login/')
 def follow_view(request):
     profile_id = request.GET.get('profile_id')
+    profile = MyUser.objects.filter(pk=profile_id).first()
     my_user = MyUser.objects.filter(user=request.user).first()
-    profile = MyUser.objects.filter(id=profile_id).first()
     follow_exists = FollowUser.objects.filter(follower=my_user, following_id=profile.id)
     if follow_exists.exists():
         follow_exists.delete()
         profile.follower_count -= 1
-        profile.save(update_fields=['follower_count'])
         my_user.following_count -= 1
+        profile.save(update_fields=['follower_count'])
         my_user.save(update_fields=['following_count'])
     else:
         obj = FollowUser.objects.create(follower=my_user, following_id=profile.id)
         obj.save()
         profile.follower_count += 1
-        profile.save(update_fields=['follower_count'])
         my_user.following_count += 1
+        profile.save(update_fields=['follower_count'])
         my_user.save(update_fields=['following_count'])
+    if 'redirect_to_profile' in request.GET:
+        return redirect(f'/profile_info?profile_id={profile_id}')
     return redirect('/')
-
-
-@login_required(login_url='/auth/login/')
-def follow_profile_view(request):
-    profile_id = request.GET.get('profile_id')
-    profile = MyUser.objects.filter(id=profile_id).first()
-    my_user = MyUser.objects.filter(user=request.user).first()
-    follow_exists = FollowUser.objects.filter(follower=my_user, following_id=profile.id)
-    if follow_exists.exists():
-        follow_exists.delete()
-        profile.follower_count -= 1
-        profile.save(update_fields=['follower_count'])
-        my_user.following_count -= 1
-        my_user.save(update_fields=['following_count'])
-    else:
-        obj = FollowUser.objects.create(follower=my_user, following_id=profile.id)
-        obj.save()
-        profile.follower_count += 1
-        profile.save(update_fields=['follower_count'])
-        my_user.following_count += 1
-        my_user.save(update_fields=['following_count'])
-    return redirect(f'/profile_info?profile_id={profile_id}')
 
 
 @login_required(login_url='/auth/login/')
@@ -184,6 +164,7 @@ def profile_view(request):
         'user_posts': user_posts,
     }
     return render(request, 'profile.html', context=d)
+
 
 @login_required(login_url='/auth/login/')
 def search_view(request):

@@ -63,14 +63,10 @@ def upload_view(request):
 @login_required(login_url='/auth/login/')
 def uploadprofile_view(request):
     if request.method == 'POST':
-        try:
-            my_user = MyUser.objects.get(user=request.user)
-        except MyUser.DoesNotExist:
-            my_user = None
-        if my_user:
-            my_user.profile_pic = request.FILES.get('profile_pic')
-            my_user.save()
-            return redirect('/profile/')
+        my_user = MyUser.objects.filter(user=request.user).first()
+        my_user.profile_pic = request.FILES.get('profile_pic')
+        my_user.save()
+        return redirect('/profile/')
 
 
 @login_required(login_url='/auth/login/')
@@ -85,8 +81,7 @@ def delete_post_view(request):
         my_user.save(update_fields=['post_count'])
         latest_post = Post.objects.last()
         return redirect('/#{}'.format(latest_post.id))
-    else:
-        return render(request, 'error.html')
+    return render(request, 'error.html')
 
 
 @login_required(login_url='/auth/login/')
@@ -124,11 +119,10 @@ def like_view(request):
         like_post.like_count -= 1
         like_post.save(update_fields=['like_count'])
         return redirect('/#{}'.format(post_id))
-    else:
-        obj = LikePost.objects.create(author=my_user, post_id=post_id)
-        obj.save()
-        like_post.like_count += 1
-        like_post.save(update_fields=['like_count'])
+    obj = LikePost.objects.create(author=my_user, post_id=post_id)
+    obj.save()
+    like_post.like_count += 1
+    like_post.save(update_fields=['like_count'])
     return redirect('/#{}'.format(post_id))
 
 
@@ -180,5 +174,5 @@ def search_view(request):
                                               'user': MyUser.objects.filter(user=request.user).first(),
                                               'profiles': MyUser.objects.all().exclude(user=request.user), })
 
-    elif query != usernames:
+    if query != usernames:
         return render(request, 'index.html', {'usernames': usernames})

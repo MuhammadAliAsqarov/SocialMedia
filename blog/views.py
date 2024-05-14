@@ -162,6 +162,9 @@ def profile_view(request):
     if 'profile_id' in request.GET:
         profile_id = request.GET.get('profile_id')
         profile = MyUser.objects.filter(pk=profile_id).first()
+    elif 'author_id' in request.GET:
+        profile_id = request.GET.get('author_id')
+        profile = MyUser.objects.filter(pk=profile_id).first()
     else:
         profile = MyUser.objects.filter(user=request.user).first()
     followers_count = profile.follower_count
@@ -181,31 +184,6 @@ def profile_view(request):
         'user_posts': user_posts,
     }
     return render(request, 'profile.html', context=d)
-
-
-@login_required(login_url='/auth/login/')
-def post_authorinfo_view(request):
-    data = request.GET
-    profile_id = data.get("author_id")
-    profile = MyUser.objects.filter(id=profile_id).first()
-    followers_count = profile.follower_count
-    followings_count = profile.following_count
-    posts_count = profile.post_count
-    profile_pic = profile.profile_pic
-    bio = profile.bio
-    user_posts = Post.objects.filter(author=profile)
-    d = {
-        'profile_pic': profile_pic,
-        'bio': bio,
-        'profile': profile,
-        'user': MyUser.objects.filter(user=request.user).first(),
-        'followers': followers_count,
-        'followings': followings_count,
-        'posts': posts_count,
-        'user_posts': user_posts,
-    }
-    return render(request, 'profile.html', context=d)
-
 
 @login_required(login_url='/auth/login/')
 def search_view(request):

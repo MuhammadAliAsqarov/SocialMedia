@@ -1,22 +1,25 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from blog.models import Post, MyUser, CommentPost, LikePost, FollowUser
+from django.db.models import Q
 
 
 def func(post, comments):
     post.comments = comments.filter(post_id=post.id)
     post.likes = LikePost.objects.filter(post_id=post.id).order_by('created_at')[:3]
-    post.last_liked = post.likes[0]
+    post.last_liked = post.likes.first()
     return post
 
 
 @login_required(login_url='/auth/login/')
 def home_view(request):
-    followed_users = FollowUser.objects.filter(follower=request.user.myuser).values_list('following', flat=True)
-    posts = map(lambda post: func(post, CommentPost.objects.all()), Post.objects.filter(author__in=followed_users))
+    my_user = MyUser.objects.filter(user=request.user).first()
+    followed_users = FollowUser.objects.filter(follower=my_user).values_list('following', flat=True)
 
+    # posts = map(lambda post: func(post, CommentPost.objects.all()), Post.objects.filter(author__in=followed_users))
 
-
+    posts = Post.objects.filter(Q(author__in=followed_users) | Q(author=my_user)).distinct()
+    posts = map(lambda post: func(post, CommentPost.objects.all()), posts)
     d = {
         'posts': posts,
         'user': MyUser.objects.filter(user=request.user).first(),
@@ -38,12 +41,14 @@ def home_view(request):
     return render(request, 'index.html', context=d)
 
 
+@login_required(login_url='/auth/login/')
 def comments_view(request, post_id):
     post = Post.objects.filter(id=post_id).first()
     comments = CommentPost.objects.filter(post=post).all()
     return render(request, 'index.html', context={'post': post, 'comments': comments})
 
 
+@login_required(login_url='/auth/login/')
 def upload_view(request):
     if request.method == 'POST':
         my_user = MyUser.objects.filter(user=request.user).first()
@@ -55,6 +60,7 @@ def upload_view(request):
     return redirect('/')
 
 
+@login_required(login_url='/auth/login/')
 def uploadprofile_view(request):
     if request.method == 'POST':
         try:
@@ -67,6 +73,7 @@ def uploadprofile_view(request):
             return redirect('/profile/')
 
 
+@login_required(login_url='/auth/login/')
 def delete_post_view(request):
     data = request.GET
     post_id = data.get("post_id")
@@ -82,6 +89,7 @@ def delete_post_view(request):
         return render(request, 'error.html')
 
 
+@login_required(login_url='/auth/login/')
 def follow_view(request):
     profile_id = request.GET.get('profile_id')
     my_user = MyUser.objects.filter(user=request.user).first()
@@ -103,6 +111,7 @@ def follow_view(request):
     return redirect('/')
 
 
+@login_required(login_url='/auth/login/')
 def follow_profile_view(request):
     profile_id = request.GET.get('profile_id')
     profile = MyUser.objects.filter(id=profile_id).first()
@@ -124,6 +133,7 @@ def follow_profile_view(request):
     return redirect(f'/profile_info?profile_id={profile_id}')
 
 
+@login_required(login_url='/auth/login/')
 def like_view(request):
     post_id = request.GET.get('post_id')
     my_user = MyUser.objects.filter(user=request.user).first()
@@ -142,12 +152,18 @@ def like_view(request):
     return redirect('/#{}'.format(post_id))
 
 
+@login_required(login_url='/auth/login/')
 def setting_view(request):
     return render(request, 'setting.html')
 
 
+@login_required(login_url='/auth/login/')
 def profile_view(request):
-    profile = MyUser.objects.filter(user=request.user).first()
+    if 'profile_id' in request.GET:
+        profile_id = request.GET.get('profile_id')
+        profile = MyUser.objects.filter(pk=profile_id).first()
+    else:
+        profile = MyUser.objects.filter(user=request.user).first()
     followers_count = profile.follower_count
     followings_count = profile.following_count
     posts_count = profile.post_count
@@ -167,47 +183,7 @@ def profile_view(request):
     return render(request, 'profile.html', context=d)
 
 
-def profile_info_view(request):
-    data = request.GET
-    profile_id = data.get("profile_id")
-    profile = MyUser.objects.filter(id=profile_id).first()
-    followers_count = profile.follower_count
-    followings_count = profile.following_count
-    posts_count = profile.post_count
-    profile_pic = profile.profile_pic
-    bio = profile.bio
-    user_posts = Post.objects.filter(author=profile)
-    d = {
-        'profile_pic': profile_pic,
-        'bio': bio,
-        'profile': profile,
-        'user': MyUser.objects.filter(user=request.user).first(),
-        'followers': followers_count,
-        'followings': followings_count,
-        'posts': posts_count,
-        'user_posts': user_posts,
-    }
-
-    return render(request, 'profile.html', context=d)
-
-
-def search_view(request):
-    if request.method == 'POST':
-        query = request.POST.get('query')
-        return redirect(f'/search?u={query}')
-    query = request.GET.get('u')
-    usernames = MyUser.objects.filter(user__username__icontains=query)
-    if query is not None and len(query) >= 1:
-        posts = Post.objects.all()
-        usernames = MyUser.objects.filter(user__username__icontains=query)
-        return render(request, 'index.html', {'usernames': usernames, 'posts': posts,
-                                              'user': MyUser.objects.filter(user=request.user).first(),
-                                              'profiles': MyUser.objects.all().exclude(user=request.user), })
-
-    elif query != usernames:
-        return render(request, 'index.html', {'usernames': usernames})
-
-
+@login_required(login_url='/auth/login/')
 def post_authorinfo_view(request):
     data = request.GET
     profile_id = data.get("author_id")
@@ -229,3 +205,21 @@ def post_authorinfo_view(request):
         'user_posts': user_posts,
     }
     return render(request, 'profile.html', context=d)
+
+
+@login_required(login_url='/auth/login/')
+def search_view(request):
+    if request.method == 'POST':
+        query = request.POST.get('query')
+        return redirect(f'/search?u={query}')
+    query = request.GET.get('u')
+    usernames = MyUser.objects.filter(user__username__icontains=query)
+    if query is not None and len(query) >= 1:
+        posts = Post.objects.all()
+        usernames = MyUser.objects.filter(user__username__icontains=query)
+        return render(request, 'index.html', {'usernames': usernames, 'posts': posts,
+                                              'user': MyUser.objects.filter(user=request.user).first(),
+                                              'profiles': MyUser.objects.all().exclude(user=request.user), })
+
+    elif query != usernames:
+        return render(request, 'index.html', {'usernames': usernames})

@@ -19,11 +19,12 @@ def home_view(request):
     # posts = map(lambda post: func(post, CommentPost.objects.all()), Post.objects.filter(author__in=followed_users))
 
     posts = Post.objects.filter(Q(author__in=followed_users) | Q(author=my_user)).distinct()
-    posts = map(lambda post: func(post, CommentPost.objects.all()), posts)
+    posts = map(lambda post: func(post, CommentPost.objects.all()), posts.order_by('-created'))
     d = {
         'posts': posts,
         'user': MyUser.objects.filter(user=request.user).first(),
         'profiles': MyUser.objects.all().exclude(user=request.user),
+        'followed_users': followed_users
     }
     if request.method == 'POST':
         data = request.POST
@@ -147,15 +148,18 @@ def profile_view(request):
     profile_pic = profile.profile_pic
     bio = profile.bio
     user_posts = Post.objects.filter(author=profile)
+    my_user = MyUser.objects.filter(user=request.user).first()
+    followed_users = FollowUser.objects.filter(follower=my_user).values_list('following', flat=True)
     d = {
         'profile_pic': profile_pic,
         'bio': bio,
         'profile': profile,
-        'user': MyUser.objects.filter(user=request.user).first(),
+        'user': my_user,
         'followers': followers_count,
         'followings': followings_count,
         'posts': posts_count,
         'user_posts': user_posts,
+        'followed_users': followed_users
     }
     return render(request, 'profile.html', context=d)
 
@@ -168,11 +172,16 @@ def search_view(request):
     query = request.GET.get('u')
     usernames = MyUser.objects.filter(user__username__icontains=query)
     if query is not None and len(query) >= 1:
-        posts = Post.objects.all()
         usernames = MyUser.objects.filter(user__username__icontains=query)
-        return render(request, 'index.html', {'usernames': usernames, 'posts': posts,
-                                              'user': MyUser.objects.filter(user=request.user).first(),
-                                              'profiles': MyUser.objects.all().exclude(user=request.user), })
+        my_user = MyUser.objects.filter(user=request.user).first()
+        followed_users = FollowUser.objects.filter(follower=my_user).values_list('following', flat=True)
+        posts = Post.objects.filter(Q(author__in=followed_users) | Q(author=my_user)).distinct()
+        posts = map(lambda post: func(post, CommentPost.objects.all()), posts.order_by('-created'))
+        return render(request, 'index.html', {'usernames': usernames,
+                                              'user': my_user,
+                                              'posts': posts,
+                                              'profiles': MyUser.objects.all().exclude(user=request.user),
+                                              'followed_users': followed_users})
 
     if query != usernames:
         return render(request, 'index.html', {'usernames': usernames})

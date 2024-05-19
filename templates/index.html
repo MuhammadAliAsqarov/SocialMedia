@@ -203,8 +203,7 @@
                         <ul class="results-list">
                             {% for user in usernames %}
                             <li class="result-item">
-                                <a href="/profile_info?profile_id={{ user.id }}" class="result-link">{{
-                                    user.user.username }}</a>
+                                <a href="/profile_info?profile_id={{ user.id }}" class="result-link">{{ user.user.username }}</a>
                                 <div class="remove-container">
                                     {% if usernames|length > 1 %}
                                     <a href="#" class="remove-button" onclick="removeSearchResult(this)">X</a>
@@ -542,10 +541,13 @@
                             {% for post in post.likes %}
                             <img src="{{ post.author.profile_pic.url }}" alt=""
                                  class="w-6 h-6 rounded-full border-2 border-white ">
-                           {% endfor %}
+                            {% endfor %}
                         </div>
                         <div class="">
-                          {{ post.last_liked.author.user.username }} Liked <strong></strong> and <strong> {{ post.like_count }} others , </strong>
+                            {% if post.like_count > 0 %}
+                            Liked <strong>{{ post.last_liked.author.user.username }}</strong> and <strong><span
+                                id="like_count_{{ post.id }}">{{ post.like_count }}</span> others , </strong>
+                            {% endif %}
                             Comments <strong> {{ post.comment_count }} </strong>
                         </div>
                     </div>
@@ -609,9 +611,17 @@
                             </div>
                         </div>
 
+                        {% if profile.id in followed_users %}
                         <a href="/follow?profile_id={{ profile.id }}"
-                           class="border border-gray-200 font-semibold px-4 py-1 rounded-full hover:bg-pink-600 hover:text-white hover:border-pink-600 ">
-                            Follow </a>
+                           class="border border-gray-200 font-semibold px-4 py-1 rounded-full bg-pink-600 text-white border-pink-600">
+                            Followed
+                        </a>
+                        {% else %}
+                        <a href="/follow?profile_id={{ profile.id }}"
+                           class="border border-gray-200 font-semibold px-4 py-1 rounded-full hover:bg-pink-600 hover:text-white hover:border-pink-600">
+                            Follow
+                        </a>
+                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>
@@ -700,6 +710,16 @@
             window.location.href = "/";
         }
     }
+</script>
+<script>
+    // Subtract 1 from the like count for each post if it's greater than 0
+    var likeCounts = document.querySelectorAll('[id^="like_count_"]');
+    likeCounts.forEach(function (likeCount) {
+        var count = parseInt(likeCount.textContent);
+        if (count > 0) {
+            likeCount.textContent = count - 1;
+        }
+    });
 </script>
 </body>
 

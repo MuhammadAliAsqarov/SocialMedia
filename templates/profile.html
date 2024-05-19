@@ -128,13 +128,16 @@
                 <span style="color: white; font-size: 27px;"><b>{{ posts }} posts</b></span>
                 <span style="color: white; font-size: 27px;"><b>{{ followers }} followers</b></span>
                 <span style="color: white; font-size: 27px;"><b>{{ followings }} followings</b></span>
-                {% if profile.id == user.id %}
-                <a class="border border-gray-200 font-semibold px-4 py-1 rounded-full hover:bg-pink-600 hover:text-white hover:border-pink-600">
-                    Follow
+                {% if profile.id == user.id or author.id == user.id %}
+                <div style="color: white">Your profile page</div>
+                {% elif profile.id in followed_users %}
+                <a href="/follow_profile?profile_id={{ profile.id }}&redirect_to_profile=True"
+                   class="border border-gray-200 font-semibold px-4 py-1 rounded-full hover-bg">
+                    Followed
                 </a>
                 {% else %}
                 <a href="/follow_profile?profile_id={{ profile.id }}&redirect_to_profile=True"
-                   class="border border-gray-200 font-semibold px-4 py-1 rounded-full hover:bg-pink-600 hover:text-white hover:border-pink-600">
+                   class="border border-gray-200 font-semibold px-4 py-1 rounded-full hover-bg">
                     Follow
                 </a>
                 {% endif %}
@@ -157,6 +160,7 @@
                     <figure class="image-container">
                         <img src="{{ profile_pic.url }}" style="height: 250px; width: 100%;" alt="">
                         <div class="hover-overlay">
+                            {% if profile.id == user.id or author.id == user.id %}
                             <form method="post" action="/upload_profile/" enctype="multipart/form-data"
                                   class="edit-photo">
                                 {% csrf_token %}
@@ -169,6 +173,7 @@
                                     </label>
                                 </div>
                                 <button id="uploadButton" type="submit" disabled>Upload</button>
+                                {% endif %}
                             </form>
                         </div>
                     </figure>

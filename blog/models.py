@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 class MyUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    profile_pic = models.ImageField(upload_to='profile_pics/', default="profile_pics/person_1.jpg")
+    profile_pic = models.ImageField(upload_to='profile_pics/', default="profile_pics/person_2.jpg")
     follower_count = models.PositiveIntegerField(default=0)
     following_count = models.PositiveIntegerField(default=0)
     post_count = models.PositiveIntegerField(default=0)

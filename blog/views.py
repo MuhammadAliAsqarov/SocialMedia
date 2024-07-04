@@ -20,11 +20,14 @@ def home_view(request):
 
     posts = Post.objects.filter(Q(author__in=followed_users) | Q(author=my_user)).distinct()
     posts = map(lambda post: func(post, CommentPost.objects.all()), posts.order_by('-created'))
+    users = MyUser.objects.exclude(user=request.user)
+    display_users = users.exclude(id__in=followed_users)
     d = {
         'posts': posts,
         'user': MyUser.objects.filter(user=request.user).first(),
         'profiles': MyUser.objects.all().exclude(user=request.user),
-        'followed_users': followed_users
+        'followed_users': followed_users,
+        'users': display_users[:3]
     }
     if request.method == 'POST':
         data = request.POST
@@ -177,11 +180,14 @@ def search_view(request):
         followed_users = FollowUser.objects.filter(follower=my_user).values_list('following', flat=True)
         posts = Post.objects.filter(Q(author__in=followed_users) | Q(author=my_user)).distinct()
         posts = map(lambda post: func(post, CommentPost.objects.all()), posts.order_by('-created'))
+        users = MyUser.objects.exclude(user=request.user)
+        display_users = users.exclude(id__in=followed_users)
         return render(request, 'index.html', {'usernames': usernames,
                                               'user': my_user,
                                               'posts': posts,
                                               'profiles': MyUser.objects.all().exclude(user=request.user),
-                                              'followed_users': followed_users})
+                                              'followed_users': followed_users,
+                                              'users': display_users[:3]})
 
     if query != usernames:
         return render(request, 'index.html', {'usernames': usernames})
